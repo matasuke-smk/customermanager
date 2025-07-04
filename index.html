@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>顧客管理システム</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>顧客管理システム</h1>
+  </header>
+
+  <button class="nav-btn" style="display:block;margin:24px auto 0 auto;" onclick="document.getElementById('list-section').scrollIntoView({behavior: 'smooth'});">顧客管理リストへ</button>
+
+  <section id="form-section">
+    <h2>顧客情報 登録/編集</h2>
+    <form id="customer-form">
+      <input type="hidden" id="customer-id">
+      <label>名前: <input type="text" id="name" required style="ime-mode:active;"></label>
+      <label>メールアドレス: <input type="email" id="email" inputmode="email" style="ime-mode:disabled;"></label>
+      <label>納期: <input type="text" id="dueDate" placeholder="yyyy/MM/dd" inputmode="numeric" style="ime-mode:disabled;" autocomplete="off"></label>
+      <label>金額: <input type="number" id="amount" min="0" inputmode="numeric" style="ime-mode:disabled;"></label>
+      <label>メモ: <textarea id="memo" style="ime-mode:active;"></textarea></label>
+      <button type="submit">保存</button>
+      <button type="button" id="reset-btn">リセット</button>
+    </form>
+  </section>
+
+  <section id="list-section">
+    <h2>顧客リスト</h2>
+    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+      <button class="action-btn" onclick="exportCSV()">CSVエクスポート</button>
+      <button class="action-btn" id="import-csv-btn" type="button">CSVインポート</button>
+      <input type="file" id="import-csv" accept=".csv" style="display:none;">
+    </div>
+    <table id="customer-table">
+      <thead>
+        <tr>
+          <th><input type="checkbox" id="select-all" aria-label="全選択"></th>
+          <th>名前</th>
+          <th>メールアドレス</th>
+          <th>納期</th>
+          <th>金額</th>
+          <th>メモ</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div style="margin-top: 12px;">
+      <button class="action-btn" onclick="deleteSelected()">選択した顧客を削除</button>
+    </div>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html> 
