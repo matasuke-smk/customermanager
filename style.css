@@ -4,6 +4,7 @@ body {
   margin: 0;
   padding: 0;
   color: #1d1d1f;
+  overflow-x: hidden;
 }
 header {
   background: #fff;
@@ -53,6 +54,8 @@ section {
   border-radius: 18px;
   max-width: 1200px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  width: 100%;
+  box-sizing: border-box;
 }
 label {
   display: block;
@@ -152,6 +155,10 @@ a:hover {
     font-size: 0.95rem;
     padding: 6px 12px;
   }
+  #select-all-label,
+  #delete-selected-wrapper {
+    display: none !important;
+  }
 }
 .action-dropdown, .action-dropbtn, .action-dropdown-content { display: none !important; }
 
@@ -199,6 +206,8 @@ td .action-btn:hover {
   flex-direction: column;
   gap: 8px;
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 .customer-card .card-row {
   display: flex;
@@ -238,8 +247,12 @@ td .action-btn:hover {
     font-size: 1em;
   }
 }
-#customer-table { display: table; }
-#customer-list { display: none; }
+#customer-list, #customer-table {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
 @media (max-width: 600px) {
   #customer-table { display: none; }
   #customer-list { display: block; }

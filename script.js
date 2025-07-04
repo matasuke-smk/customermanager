@@ -10,13 +10,16 @@ function saveCustomers(customers) {
 let customersCache = [];
 
 function renderCustomerList() {
+  ensureCustomerIds();
   customersCache = getCustomers();
-  // 納期順に昇順ソートし、元データのインデックスも保持
+  // 納期順に昇順ソート
   const customersWithIndex = customersCache.map((c, idx) => ({ ...c, _originalIndex: idx }));
   const sorted = customersWithIndex.slice().sort((a, b) => {
     if (!a.dueDate) return 1;
     if (!b.dueDate) return -1;
-    return new Date(a.dueDate.replace(/\//g, '-')) - new Date(b.dueDate.replace(/\//g, '-'));
+    const aDate = a.dueDate.replace(/\//g, '-');
+    const bDate = b.dueDate.replace(/\//g, '-');
+    return new Date(aDate) - new Date(bDate);
   });
   const isMobile = window.innerWidth < 600;
   // テーブル型（PC）
@@ -35,30 +38,32 @@ function renderCustomerList() {
         const today = new Date();
         const due = new Date(c.dueDate.replace(/\//g, '-'));
         const diff = (due - today) / (1000 * 60 * 60 * 24);
-        if (diff < 7) dueBg = 'background:#ffcccc;';
-        else if (diff < 14) dueBg = 'background:#ffe5b4;';
-        else if (diff < 21) dueBg = 'background:#e5ffcc;';
+        if (!isNaN(diff)) {
+          if (diff < 7) dueBg = 'background:#ffcccc;';
+          else if (diff < 14) dueBg = 'background:#ffe5b4;';
+          else if (diff < 21) dueBg = 'background:#e5ffcc;';
+        }
       }
       const tr = document.createElement('tr');
       tr.setAttribute('style', dueBg);
       tr.innerHTML = `
-        <td><input type=\"checkbox\" class=\"row-check\" data-original-index=\"${c._originalIndex}\"></td>
-        <td>${isEditing ? `<input type=\"text\" value=\"${c.name || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"name\">` : (c.name || '')}</td>
-        <td>${isEditing ? `<input type=\"email\" value=\"${c.email || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"email\">` : (c.email ? `<a href=\"mailto:${c.email}\">${c.email}</a>` : '')}</td>
-        <td>${isEditing ? `<input type=\"text\" value=\"${c.dueDate || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"dueDate\" placeholder=\"yyyy/MM/dd\">` : (c.dueDate || '')}</td>
-        <td>${isEditing ? `<input type=\"number\" value=\"${c.amount || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"amount\" min=\"0\">` : (c.amount ? c.amount + '円' : '')}</td>
-        <td>${isEditing ? `<textarea data-original-index=\"${c._originalIndex}\" data-field=\"memo\">${c.memo || ''}</textarea>` : (c.memo || '')}</td>
+        <td><input type="checkbox" class="row-check" data-id="${c.id}"></td>
+        <td>${isEditing ? `<input type="text" value="${c.name || ''}" data-id="${c.id}" data-field="name">` : (c.name || '')}</td>
+        <td>${isEditing ? `<input type="email" value="${c.email || ''}" data-id="${c.id}" data-field="email">` : (c.email ? `<a href="mailto:${c.email}">${c.email}</a>` : '')}</td>
+        <td>${isEditing ? `<input type="text" value="${c.dueDate || ''}" data-id="${c.id}" data-field="dueDate" placeholder="yyyy/MM/dd">` : (c.dueDate || '')}</td>
+        <td>${isEditing ? `<input type="number" value="${c.amount || ''}" data-id="${c.id}" data-field="amount" min="0">` : (c.amount ? c.amount + '円' : '')}</td>
+        <td>${isEditing ? `<textarea data-id="${c.id}" data-field="memo">${c.memo || ''}</textarea>` : (c.memo || '')}</td>
         <td>
-          ${isEditing ? `<button class=\"action-btn\" onclick=\"saveEdit(${c._originalIndex})\">保存</button>` : `<button class=\"action-btn\" onclick=\"editRow(${c._originalIndex})\">編集</button>`}
-          <button class=\"action-btn\" onclick=\"deleteCustomerUI(${c._originalIndex})\">削除</button>
+          ${isEditing ? `<button class="action-btn" onclick="saveEdit('${c.id}')">保存</button>` : `<button class="action-btn" onclick="editRow('${c.id}')">編集</button>`}
+          <button class="action-btn" onclick="deleteCustomerUI('${c.id}')">削除</button>
         </td>
       `;
       tbody.appendChild(tr);
     });
     // 編集・保存イベント
-    tbody.querySelectorAll('input[data-original-index], textarea[data-original-index]').forEach(el => {
+    tbody.querySelectorAll('input[data-id], textarea[data-id]').forEach(el => {
       el.addEventListener('change', function() {
-        const idx = Number(this.dataset.originalIndex);
+        const id = this.dataset.id;
         const field = this.dataset.field;
         let val = this.value;
         if (field === 'dueDate' && /^\d{8}$/.test(val)) {
@@ -76,14 +81,18 @@ function renderCustomerList() {
           this.value = '';
           val = '';
         }
-        customersCache[idx][field] = this.value;
+        customersCache.forEach((c, i) => {
+          if (c.id === id) {
+            c[field] = this.value;
+          }
+        });
       });
       if (el.tagName === 'INPUT') {
         el.addEventListener('keydown', function(e) {
           if (e.key === 'Enter') {
             e.preventDefault();
-            const idx = Number(this.dataset.originalIndex);
-            window.saveEdit(idx);
+            const id = this.dataset.id;
+            window.saveEdit(id);
           }
         });
       }
@@ -106,46 +115,48 @@ function renderCustomerList() {
         const today = new Date();
         const due = new Date(c.dueDate.replace(/\//g, '-'));
         const diff = (due - today) / (1000 * 60 * 60 * 24);
-        if (diff < 7) dueBg = 'background:#ffcccc;';
-        else if (diff < 14) dueBg = 'background:#ffe5b4;';
-        else if (diff < 21) dueBg = 'background:#e5ffcc;';
+        if (!isNaN(diff)) {
+          if (diff < 7) dueBg = 'background:#ffcccc;';
+          else if (diff < 14) dueBg = 'background:#ffe5b4;';
+          else if (diff < 21) dueBg = 'background:#e5ffcc;';
+        }
       }
       const card = document.createElement('div');
       card.className = 'customer-card';
       card.setAttribute('style', dueBg);
       card.innerHTML = `
-        <div class="card-row">
-          <input type=\"checkbox\" class=\"row-check\" data-original-index=\"${c._originalIndex}\">
+        <div class=\"card-row\">
+          <!-- チェックボックスはスマホ表示では非表示 -->
           <span class=\"card-label\">名前</span>
-          <span class=\"card-value\">${isEditing ? `<input type=\"text\" value=\"${c.name || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"name\">` : (c.name || '')}</span>
+          <span class=\"card-value\">${isEditing ? `<input type=\"text\" value=\"${c.name || ''}\" data-id=\"${c.id}\" data-field=\"name\">` : (c.name || '')}</span>
         </div>
-        <div class="card-row">
+        <div class=\"card-row\">
           <span class=\"card-label\">メール</span>
-          <span class=\"card-value\">${isEditing ? `<input type=\"email\" value=\"${c.email || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"email\">` : (c.email ? `<a href=\"mailto:${c.email}\">${c.email}</a>` : '')}</span>
+          <span class=\"card-value\">${isEditing ? `<input type=\"email\" value=\"${c.email || ''}\" data-id=\"${c.id}\" data-field=\"email\">` : (c.email ? `<a href=\"mailto:${c.email}\">${c.email}</a>` : '')}</span>
         </div>
-        <div class="card-row">
+        <div class=\"card-row\">
           <span class=\"card-label\">納期</span>
-          <span class=\"card-value\">${isEditing ? `<input type=\"text\" value=\"${c.dueDate || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"dueDate\" placeholder=\"yyyy/MM/dd\">` : (c.dueDate || '')}</span>
+          <span class=\"card-value\">${isEditing ? `<input type=\"text\" value=\"${c.dueDate || ''}\" data-id=\"${c.id}\" data-field=\"dueDate\" placeholder=\"yyyy/MM/dd\">` : (c.dueDate || '')}</span>
         </div>
-        <div class="card-row">
+        <div class=\"card-row\">
           <span class=\"card-label\">金額</span>
-          <span class=\"card-value\">${isEditing ? `<input type=\"number\" value=\"${c.amount || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"amount\" min=\"0\">` : (c.amount ? c.amount + '円' : '')}</span>
+          <span class=\"card-value\">${isEditing ? `<input type=\"number\" value=\"${c.amount || ''}\" data-id=\"${c.id}\" data-field=\"amount\" min=\"0\">` : (c.amount ? c.amount + '円' : '')}</span>
         </div>
-        <div class="card-row">
+        <div class=\"card-row\">
           <span class=\"card-label\">メモ</span>
-          <span class=\"card-value\">${isEditing ? `<textarea data-original-index=\"${c._originalIndex}\" data-field=\"memo\">${c.memo || ''}</textarea>` : (c.memo || '')}</span>
+          <span class=\"card-value\">${isEditing ? `<textarea data-id=\"${c.id}\" data-field=\"memo\">${c.memo || ''}</textarea>` : (c.memo || '')}</span>
         </div>
-        <div class="card-actions">
-          ${isEditing ? `<button class=\"action-btn\" onclick=\"saveEdit(${c._originalIndex})\">保存</button>` : `<button class=\"action-btn\" onclick=\"editRow(${c._originalIndex})\">編集</button>`}
-          <button class=\"action-btn\" onclick=\"deleteCustomerUI(${c._originalIndex})\">削除</button>
+        <div class=\"card-actions\">
+          ${isEditing ? `<button class=\"action-btn\" onclick=\"saveEdit('${c.id}')\">保存</button>` : `<button class=\"action-btn\" onclick=\"editRow('${c.id}')\">編集</button>`}
+          <button class=\"action-btn\" onclick=\"deleteCustomerUI('${c.id}')\">削除</button>
         </div>
       `;
       list.appendChild(card);
     });
     // 編集・保存イベント
-    list.querySelectorAll('input[data-original-index], textarea[data-original-index]').forEach(el => {
+    list.querySelectorAll('input[data-id], textarea[data-id]').forEach(el => {
       el.addEventListener('change', function() {
-        const idx = Number(this.dataset.originalIndex);
+        const id = this.dataset.id;
         const field = this.dataset.field;
         let val = this.value;
         if (field === 'dueDate' && /^\d{8}$/.test(val)) {
@@ -163,14 +174,18 @@ function renderCustomerList() {
           this.value = '';
           val = '';
         }
-        customersCache[idx][field] = this.value;
+        customersCache.forEach((c, i) => {
+          if (c.id === id) {
+            c[field] = this.value;
+          }
+        });
       });
       if (el.tagName === 'INPUT') {
         el.addEventListener('keydown', function(e) {
           if (e.key === 'Enter') {
             e.preventDefault();
-            const idx = Number(this.dataset.originalIndex);
-            window.saveEdit(idx);
+            const id = this.dataset.id;
+            window.saveEdit(id);
           }
         });
       }
@@ -187,57 +202,80 @@ function renderCustomerList() {
   }
 }
 
-window.editRow = function(index) {
+window.editRow = function(id) {
   customersCache.forEach((c, i) => { c._editing = false; });
-  if (typeof index === 'number' && customersCache[index]) {
-    customersCache[index]._editing = true;
+  if (id && customersCache.find(c => c.id === id)) {
+    customersCache.forEach((c, i) => {
+      if (c.id === id) {
+        c._editing = true;
+      }
+    });
   }
   saveCustomers(customersCache);
   renderCustomerList();
 };
 
-window.saveEdit = function(index) {
-  // 編集中のinput/textareaの値でcustomersCache[index]を更新
+window.saveEdit = function(id) {
+  // 編集中のinput/textareaの値でcustomersCacheを更新
   const tr = document.querySelectorAll('#customer-table tbody tr');
   let row;
   for (let i = 0; i < tr.length; i++) {
     const checkbox = tr[i].querySelector('.row-check');
-    if (checkbox && Number(checkbox.dataset.originalIndex) === index) {
+    if (checkbox && checkbox.dataset.id === id) {
       row = tr[i];
       break;
     }
   }
   if (row) {
-    customersCache[index].name = row.querySelector('input[data-field="name"]').value;
-    customersCache[index].email = row.querySelector('input[data-field="email"]').value;
-    customersCache[index].dueDate = row.querySelector('input[data-field="dueDate"]').value;
-    customersCache[index].amount = row.querySelector('input[data-field="amount"]').value;
-    customersCache[index].memo = row.querySelector('textarea[data-field="memo"]').value;
+    customersCache.forEach((c, i) => {
+      if (c.id === id) {
+        c.name = row.querySelector('input[data-field="name"]').value;
+        c.email = row.querySelector('input[data-field="email"]').value;
+        c.dueDate = row.querySelector('input[data-field="dueDate"]').value;
+        c.amount = row.querySelector('input[data-field="amount"]').value;
+        c.memo = row.querySelector('textarea[data-field="memo"]').value;
+      }
+    });
   }
-  customersCache[index]._editing = false;
+  customersCache.forEach((c, i) => {
+    if (c.id === id) {
+      c._editing = false;
+    }
+  });
   saveCustomers(customersCache);
   renderCustomerList();
 };
 
-window.deleteCustomerUI = function(index) {
+window.deleteCustomerUI = function(id) {
   if (!confirm('本当に削除しますか？')) return;
-  customersCache.splice(index, 1);
-  saveCustomers(customersCache);
-  renderCustomerList();
+  customersCache = getCustomers();
+  const idx = customersCache.findIndex(c => c.id === id);
+  if (idx !== -1) {
+    customersCache.splice(idx, 1);
+    saveCustomers(customersCache);
+    renderCustomerList();
+  }
 };
 
 window.deleteSelected = function() {
-  const tbody = document.querySelector('#customer-table tbody');
-  const checks = tbody.querySelectorAll('.row-check');
+  const tableChecks = document.querySelectorAll('#customer-table tbody .row-check');
+  const cardChecks = document.querySelectorAll('#customer-list .row-check');
+  const checks = Array.from(tableChecks).concat(Array.from(cardChecks));
   let toDelete = [];
   checks.forEach(cb => {
-    const idx = Number(cb.dataset.originalIndex);
-    if (cb.checked) toDelete.push(idx);
+    const id = cb.dataset.id;
+    if (cb.checked && id) toDelete.push(id);
   });
-  // 後ろから削除
-  for (const idx of toDelete.sort((a, b) => b - a)) {
-    customersCache.splice(idx, 1);
+  if (toDelete.length === 0) {
+    alert('削除する顧客を選択してください');
+    return;
   }
+  if (!confirm('選択した顧客を本当に削除しますか？')) return;
+  customersCache = getCustomers();
+  toDelete.forEach(id => {
+    const idx = customersCache.findIndex(c => c.id === id);
+    if (idx !== -1) customersCache.splice(idx, 1);
+  });
   saveCustomers(customersCache);
   renderCustomerList();
 };
@@ -293,6 +331,7 @@ form.addEventListener('submit', function(e) {
   e.preventDefault();
   customersCache = getCustomers();
   const customer = {
+    id: Date.now().toString() + Math.random().toString(36).slice(2), // ユニークID
     name: document.getElementById('name').value,
     email: document.getElementById('email').value,
     dueDate: document.getElementById('dueDate').value,
@@ -390,4 +429,17 @@ if (importInput) {
     reader.readAsText(file);
     this.value = '';
   });
+}
+
+// 既存データにidを後付け
+function ensureCustomerIds() {
+  let changed = false;
+  customersCache = getCustomers();
+  customersCache.forEach(c => {
+    if (!c.id) {
+      c.id = Date.now().toString() + Math.random().toString(36).slice(2);
+      changed = true;
+    }
+  });
+  if (changed) saveCustomers(customersCache);
 } 
