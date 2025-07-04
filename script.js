@@ -270,14 +270,8 @@ window.exportCSV = function() {
   URL.revokeObjectURL(url);
 };
 
-// インポートボタンでファイル選択を開く
-const importBtn = document.getElementById('import-csv-btn');
+// インポートボタンでファイル選択を開く（input[type=file]自体をタップ可能にしたので不要）
 const importInput = document.getElementById('import-csv');
-if (importBtn && importInput) {
-  importBtn.addEventListener('click', function() {
-    importInput.click();
-  });
-}
 // CSVインポート
 if (importInput) {
   importInput.addEventListener('change', function(e) {
