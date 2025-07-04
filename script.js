@@ -9,25 +9,28 @@ function saveCustomers(customers) {
 // UI描画・操作
 let customersCache = [];
 
-// 日付パース関数（PC・スマホ・全ブラウザ対応）
+// 日付パース関数（全ブラウザ・スマホ堅牢対応）
 function parseDate(str) {
   if (!str) return null;
   // yyyy/MM/dd または yyyy-MM-dd
   let y, m, d;
   if (/^\d{4}[-\/]\d{2}[-\/]\d{2}$/.test(str)) {
     [y, m, d] = str.split(/[-\/]/).map(Number);
-    return new Date(y, m - 1, d);
+    if (y && m && d) return new Date(y, m - 1, d);
   }
   // 8桁数字（例: 20240601）も対応
   if (/^\d{8}$/.test(str)) {
     y = Number(str.slice(0,4));
     m = Number(str.slice(4,6));
     d = Number(str.slice(6,8));
-    return new Date(y, m - 1, d);
+    if (y && m && d) return new Date(y, m - 1, d);
   }
   // それ以外はDateコンストラクタに渡してみる
   const d2 = new Date(str);
-  return isNaN(d2) ? null : d2;
+  if (!isNaN(d2)) return d2;
+  // ここでエラーを出す
+  console.log('parseDate: 不正な日付形式', str);
+  return null;
 }
 
 function renderCustomerList() {
