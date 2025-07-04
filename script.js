@@ -9,13 +9,15 @@ function saveCustomers(customers) {
 // UI描画・操作
 let customersCache = [];
 
-// 日付パース関数
+// 日付パース関数（iOS対応）
 function parseDate(str) {
   if (!str) return null;
-  // yyyy/MM/dd または yyyy-MM-dd をサポート
-  const s = str.replace(/\//g, '-');
-  const d = new Date(s);
-  return isNaN(d) ? null : d;
+  let y, m, d;
+  if (/^\d{4}[-\/]\d{2}[-\/]\d{2}$/.test(str)) {
+    [y, m, d] = str.split(/[-\/]/).map(Number);
+    return new Date(y, m - 1, d);
+  }
+  return null;
 }
 
 function renderCustomerList() {
