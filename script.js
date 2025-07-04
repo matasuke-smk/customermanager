@@ -9,17 +9,26 @@ function saveCustomers(customers) {
 // UI描画・操作
 let customersCache = [];
 
+// 日付パース関数
+function parseDate(str) {
+  if (!str) return null;
+  // yyyy/MM/dd または yyyy-MM-dd をサポート
+  const s = str.replace(/\//g, '-');
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+
 function renderCustomerList() {
   ensureCustomerIds();
   customersCache = getCustomers();
   // 納期順に昇順ソート
-  const customersWithIndex = customersCache.map((c, idx) => ({ ...c, _originalIndex: idx }));
-  const sorted = customersWithIndex.slice().sort((a, b) => {
-    if (!a.dueDate) return 1;
-    if (!b.dueDate) return -1;
-    const aDate = a.dueDate.replace(/\//g, '-');
-    const bDate = b.dueDate.replace(/\//g, '-');
-    return new Date(aDate) - new Date(bDate);
+  const sorted = customersCache.slice().sort((a, b) => {
+    const aDate = parseDate(a.dueDate);
+    const bDate = parseDate(b.dueDate);
+    if (!aDate && !bDate) return 0;
+    if (!aDate) return 1;
+    if (!bDate) return -1;
+    return aDate - bDate;
   });
   const isMobile = window.innerWidth < 600;
   // テーブル型（PC）
@@ -34,9 +43,10 @@ function renderCustomerList() {
     sorted.forEach((c, i) => {
       const isEditing = c._editing;
       let dueBg = '';
-      if (c.dueDate) {
+      const due = parseDate(c.dueDate);
+      if (due) {
         const today = new Date();
-        const due = new Date(c.dueDate.replace(/\//g, '-'));
+        today.setHours(0,0,0,0); // 時間を無視
         const diff = (due - today) / (1000 * 60 * 60 * 24);
         if (!isNaN(diff)) {
           if (diff < 7) dueBg = 'background:#ffcccc;';
@@ -111,9 +121,10 @@ function renderCustomerList() {
     sorted.forEach((c, i) => {
       const isEditing = c._editing;
       let dueBg = '';
-      if (c.dueDate) {
+      const due = parseDate(c.dueDate);
+      if (due) {
         const today = new Date();
-        const due = new Date(c.dueDate.replace(/\//g, '-'));
+        today.setHours(0,0,0,0); // 時間を無視
         const diff = (due - today) / (1000 * 60 * 60 * 24);
         if (!isNaN(diff)) {
           if (diff < 7) dueBg = 'background:#ffcccc;';
