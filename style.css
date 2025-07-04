@@ -237,4 +237,10 @@ td .action-btn:hover {
   .customer-card .card-value {
     font-size: 1em;
   }
+}
+#customer-table { display: table; }
+#customer-list { display: none; }
+@media (max-width: 600px) {
+  #customer-table { display: none; }
+  #customer-list { display: block; }
 } 

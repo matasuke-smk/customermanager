@@ -34,6 +34,26 @@
       <button class="action-btn" id="import-csv-btn" type="button">CSVインポート</button>
       <input type="file" id="import-csv" accept=".csv" style="display:none;">
     </div>
+    <div style="margin-bottom: 8px;">
+      <label style="font-size:1rem;cursor:pointer;user-select:none;display:inline-block;white-space:nowrap;align-items:center;gap:4px;">
+        <input type="checkbox" id="select-all" style="transform:scale(1.2);margin:0 4px 0 0;vertical-align:middle;">
+        すべて選択
+      </label>
+    </div>
+    <table id="customer-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>名前</th>
+          <th>メールアドレス</th>
+          <th>納期</th>
+          <th>金額</th>
+          <th>メモ</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
     <div id="customer-list"></div>
     <div style="margin-top: 12px;">
       <button class="action-btn" onclick="deleteSelected()">選択した顧客を削除</button>

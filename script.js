@@ -18,97 +18,172 @@ function renderCustomerList() {
     if (!b.dueDate) return -1;
     return new Date(a.dueDate.replace(/\//g, '-')) - new Date(b.dueDate.replace(/\//g, '-'));
   });
+  const isMobile = window.innerWidth < 600;
+  // テーブル型（PC）
+  const table = document.getElementById('customer-table');
+  const tbody = table.querySelector('tbody');
+  // カード型（スマホ）
   const list = document.getElementById('customer-list');
+  tbody.innerHTML = '';
   list.innerHTML = '';
-  sorted.forEach((c, i) => {
-    const isEditing = c._editing;
-    // 納期の色分け
-    let dueBg = '';
-    if (c.dueDate) {
-      const today = new Date();
-      const due = new Date(c.dueDate.replace(/\//g, '-'));
-      const diff = (due - today) / (1000 * 60 * 60 * 24);
-      if (diff < 7) dueBg = 'background:#ffcccc;'; // 赤
-      else if (diff < 14) dueBg = 'background:#ffe5b4;'; // オレンジ
-      else if (diff < 21) dueBg = 'background:#e5ffcc;'; // 黄緑
-    }
-    const card = document.createElement('div');
-    card.className = 'customer-card';
-    card.setAttribute('style', dueBg);
-    card.innerHTML = `
-      <div class="card-row">
-        <input type=\"checkbox\" class=\"row-check\" data-original-index=\"${c._originalIndex}\">
-        <span class=\"card-label\">名前</span>
-        <span class=\"card-value\">${isEditing ? `<input type=\"text\" value=\"${c.name || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"name\">` : (c.name || '')}</span>
-      </div>
-      <div class="card-row">
-        <span class=\"card-label\">メール</span>
-        <span class=\"card-value\">${isEditing ? `<input type=\"email\" value=\"${c.email || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"email\">` : (c.email ? `<a href=\"mailto:${c.email}\">${c.email}</a>` : '')}</span>
-      </div>
-      <div class="card-row">
-        <span class=\"card-label\">納期</span>
-        <span class=\"card-value\">${isEditing ? `<input type=\"text\" value=\"${c.dueDate || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"dueDate\" placeholder=\"yyyy/MM/dd\">` : (c.dueDate || '')}</span>
-      </div>
-      <div class="card-row">
-        <span class=\"card-label\">金額</span>
-        <span class=\"card-value\">${isEditing ? `<input type=\"number\" value=\"${c.amount || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"amount\" min=\"0\">` : (c.amount ? c.amount + '円' : '')}</span>
-      </div>
-      <div class="card-row">
-        <span class=\"card-label\">メモ</span>
-        <span class=\"card-value\">${isEditing ? `<textarea data-original-index=\"${c._originalIndex}\" data-field=\"memo\">${c.memo || ''}</textarea>` : (c.memo || '')}</span>
-      </div>
-      <div class="card-actions">
-        ${isEditing ? `<button class=\"action-btn\" onclick=\"saveEdit(${c._originalIndex})\">保存</button>` : `<button class=\"action-btn\" onclick=\"editRow(${c._originalIndex})\">編集</button>`}
-        <button class=\"action-btn\" onclick=\"deleteCustomerUI(${c._originalIndex})\">削除</button>
-      </div>
-    `;
-    list.appendChild(card);
-  });
-  // 編集時のイベント
-  list.querySelectorAll('input[data-original-index], textarea[data-original-index]').forEach(el => {
-    el.addEventListener('change', function() {
-      const idx = Number(this.dataset.originalIndex);
-      const field = this.dataset.field;
-      let val = this.value;
-      // 納期欄の8桁数字を自動変換し、年は4桁のみ許可
-      if (field === 'dueDate' && /^\d{8}$/.test(val)) {
-        val = val.replace(/(\d{4})(\d{2})(\d{2})/, '$1/$2/$3');
-        this.value = val;
+  if (!isMobile) {
+    // テーブル型
+    sorted.forEach((c, i) => {
+      const isEditing = c._editing;
+      let dueBg = '';
+      if (c.dueDate) {
+        const today = new Date();
+        const due = new Date(c.dueDate.replace(/\//g, '-'));
+        const diff = (due - today) / (1000 * 60 * 60 * 24);
+        if (diff < 7) dueBg = 'background:#ffcccc;';
+        else if (diff < 14) dueBg = 'background:#ffe5b4;';
+        else if (diff < 21) dueBg = 'background:#e5ffcc;';
       }
-      // 納期欄で4文字入力で/、さらに2文字入力で/を自動挿入
-      if (field === 'dueDate') {
-        if (/^\d{4}$/.test(val)) {
-          this.value = val + '/';
-        } else if (/^\d{4}\/\d{2}$/.test(val)) {
-          this.value = val + '/';
-        }
-      }
-      // 年は4桁のみ許可
-      if (field === 'dueDate' && val && !/^\d{4}\//.test(val)) {
-        this.value = '';
-        val = '';
-      }
-      customersCache[idx][field] = this.value;
+      const tr = document.createElement('tr');
+      tr.setAttribute('style', dueBg);
+      tr.innerHTML = `
+        <td><input type=\"checkbox\" class=\"row-check\" data-original-index=\"${c._originalIndex}\"></td>
+        <td>${isEditing ? `<input type=\"text\" value=\"${c.name || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"name\">` : (c.name || '')}</td>
+        <td>${isEditing ? `<input type=\"email\" value=\"${c.email || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"email\">` : (c.email ? `<a href=\"mailto:${c.email}\">${c.email}</a>` : '')}</td>
+        <td>${isEditing ? `<input type=\"text\" value=\"${c.dueDate || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"dueDate\" placeholder=\"yyyy/MM/dd\">` : (c.dueDate || '')}</td>
+        <td>${isEditing ? `<input type=\"number\" value=\"${c.amount || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"amount\" min=\"0\">` : (c.amount ? c.amount + '円' : '')}</td>
+        <td>${isEditing ? `<textarea data-original-index=\"${c._originalIndex}\" data-field=\"memo\">${c.memo || ''}</textarea>` : (c.memo || '')}</td>
+        <td>
+          ${isEditing ? `<button class=\"action-btn\" onclick=\"saveEdit(${c._originalIndex})\">保存</button>` : `<button class=\"action-btn\" onclick=\"editRow(${c._originalIndex})\">編集</button>`}
+          <button class=\"action-btn\" onclick=\"deleteCustomerUI(${c._originalIndex})\">削除</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
     });
-    // エンターで保存
-    if (el.tagName === 'INPUT') {
-      el.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          const idx = Number(this.dataset.originalIndex);
-          window.saveEdit(idx);
+    // 編集・保存イベント
+    tbody.querySelectorAll('input[data-original-index], textarea[data-original-index]').forEach(el => {
+      el.addEventListener('change', function() {
+        const idx = Number(this.dataset.originalIndex);
+        const field = this.dataset.field;
+        let val = this.value;
+        if (field === 'dueDate' && /^\d{8}$/.test(val)) {
+          val = val.replace(/(\d{4})(\d{2})(\d{2})/, '$1/$2/$3');
+          this.value = val;
         }
+        if (field === 'dueDate') {
+          if (/^\d{4}$/.test(val)) {
+            this.value = val + '/';
+          } else if (/^\d{4}\/\d{2}$/.test(val)) {
+            this.value = val + '/';
+          }
+        }
+        if (field === 'dueDate' && val && !/^\d{4}\//.test(val)) {
+          this.value = '';
+          val = '';
+        }
+        customersCache[idx][field] = this.value;
       });
+      if (el.tagName === 'INPUT') {
+        el.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const idx = Number(this.dataset.originalIndex);
+            window.saveEdit(idx);
+          }
+        });
+      }
+    });
+    // すべて選択チェックボックス
+    const selectAll = document.getElementById('select-all');
+    const allChecks = tbody.querySelectorAll('.row-check');
+    if (selectAll) {
+      selectAll.onclick = function() {
+        const checked = this.checked;
+        allChecks.forEach(cb => { cb.checked = checked; });
+      };
     }
-  });
-  // 一括選択チェックボックス
-  const allChecks = list.querySelectorAll('.row-check');
-  const selectAll = document.getElementById('select-all');
-  if (selectAll) {
-    selectAll.onclick = function() {
-      const checked = this.checked;
-      allChecks.forEach(cb => { cb.checked = checked; });
-    };
+  } else {
+    // カード型
+    sorted.forEach((c, i) => {
+      const isEditing = c._editing;
+      let dueBg = '';
+      if (c.dueDate) {
+        const today = new Date();
+        const due = new Date(c.dueDate.replace(/\//g, '-'));
+        const diff = (due - today) / (1000 * 60 * 60 * 24);
+        if (diff < 7) dueBg = 'background:#ffcccc;';
+        else if (diff < 14) dueBg = 'background:#ffe5b4;';
+        else if (diff < 21) dueBg = 'background:#e5ffcc;';
+      }
+      const card = document.createElement('div');
+      card.className = 'customer-card';
+      card.setAttribute('style', dueBg);
+      card.innerHTML = `
+        <div class="card-row">
+          <input type=\"checkbox\" class=\"row-check\" data-original-index=\"${c._originalIndex}\">
+          <span class=\"card-label\">名前</span>
+          <span class=\"card-value\">${isEditing ? `<input type=\"text\" value=\"${c.name || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"name\">` : (c.name || '')}</span>
+        </div>
+        <div class="card-row">
+          <span class=\"card-label\">メール</span>
+          <span class=\"card-value\">${isEditing ? `<input type=\"email\" value=\"${c.email || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"email\">` : (c.email ? `<a href=\"mailto:${c.email}\">${c.email}</a>` : '')}</span>
+        </div>
+        <div class="card-row">
+          <span class=\"card-label\">納期</span>
+          <span class=\"card-value\">${isEditing ? `<input type=\"text\" value=\"${c.dueDate || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"dueDate\" placeholder=\"yyyy/MM/dd\">` : (c.dueDate || '')}</span>
+        </div>
+        <div class="card-row">
+          <span class=\"card-label\">金額</span>
+          <span class=\"card-value\">${isEditing ? `<input type=\"number\" value=\"${c.amount || ''}\" data-original-index=\"${c._originalIndex}\" data-field=\"amount\" min=\"0\">` : (c.amount ? c.amount + '円' : '')}</span>
+        </div>
+        <div class="card-row">
+          <span class=\"card-label\">メモ</span>
+          <span class=\"card-value\">${isEditing ? `<textarea data-original-index=\"${c._originalIndex}\" data-field=\"memo\">${c.memo || ''}</textarea>` : (c.memo || '')}</span>
+        </div>
+        <div class="card-actions">
+          ${isEditing ? `<button class=\"action-btn\" onclick=\"saveEdit(${c._originalIndex})\">保存</button>` : `<button class=\"action-btn\" onclick=\"editRow(${c._originalIndex})\">編集</button>`}
+          <button class=\"action-btn\" onclick=\"deleteCustomerUI(${c._originalIndex})\">削除</button>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+    // 編集・保存イベント
+    list.querySelectorAll('input[data-original-index], textarea[data-original-index]').forEach(el => {
+      el.addEventListener('change', function() {
+        const idx = Number(this.dataset.originalIndex);
+        const field = this.dataset.field;
+        let val = this.value;
+        if (field === 'dueDate' && /^\d{8}$/.test(val)) {
+          val = val.replace(/(\d{4})(\d{2})(\d{2})/, '$1/$2/$3');
+          this.value = val;
+        }
+        if (field === 'dueDate') {
+          if (/^\d{4}$/.test(val)) {
+            this.value = val + '/';
+          } else if (/^\d{4}\/\d{2}$/.test(val)) {
+            this.value = val + '/';
+          }
+        }
+        if (field === 'dueDate' && val && !/^\d{4}\//.test(val)) {
+          this.value = '';
+          val = '';
+        }
+        customersCache[idx][field] = this.value;
+      });
+      if (el.tagName === 'INPUT') {
+        el.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const idx = Number(this.dataset.originalIndex);
+            window.saveEdit(idx);
+          }
+        });
+      }
+    });
+    // すべて選択チェックボックス
+    const selectAll = document.getElementById('select-all');
+    const allChecks = list.querySelectorAll('.row-check');
+    if (selectAll) {
+      selectAll.onclick = function() {
+        const checked = this.checked;
+        allChecks.forEach(cb => { cb.checked = checked; });
+      };
+    }
   }
 }
 
