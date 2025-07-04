@@ -30,11 +30,9 @@
   <section id="list-section">
     <h2>顧客リスト</h2>
     <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
-      <button class="action-btn" onclick="exportCSV()">CSVエクスポート</button>
-      <div style="position:relative;display:inline-block;">
-        <button class="action-btn" id="import-csv-btn" type="button" style="position:relative;z-index:1;">CSVインポート</button>
-        <input type="file" id="import-csv" accept=".csv" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;z-index:2;cursor:pointer;">
-      </div>
+      <button class="action-btn" onclick="exportCSV()" id="export-csv-btn">CSVエクスポート</button>
+      <button class="action-btn" id="import-csv-btn" type="button">CSVインポート</button>
+      <input type="file" id="import-csv" accept=".csv" style="display:none;">
     </div>
     <div id="customer-list"></div>
     <div style="margin-top: 12px;">

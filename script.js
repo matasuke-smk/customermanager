@@ -216,6 +216,7 @@ if (amountInput) {
 const form = document.getElementById('customer-form');
 form.addEventListener('submit', function(e) {
   e.preventDefault();
+  customersCache = getCustomers();
   const customer = {
     name: document.getElementById('name').value,
     email: document.getElementById('email').value,
@@ -270,8 +271,14 @@ window.exportCSV = function() {
   URL.revokeObjectURL(url);
 };
 
-// インポートボタンでファイル選択を開く（input[type=file]自体をタップ可能にしたので不要）
+// インポートボタンでファイル選択を開く
+const importBtn = document.getElementById('import-csv-btn');
 const importInput = document.getElementById('import-csv');
+if (importBtn && importInput) {
+  importBtn.addEventListener('click', function() {
+    importInput.click();
+  });
+}
 // CSVインポート
 if (importInput) {
   importInput.addEventListener('change', function(e) {
