@@ -9,15 +9,18 @@ function saveCustomers(customers) {
 // UI描画・操作
 let customersCache = [];
 
-// 日付パース関数（iOS対応）
+// 日付パース関数（PC・スマホ両対応）
 function parseDate(str) {
   if (!str) return null;
+  // yyyy/MM/dd または yyyy-MM-dd
   let y, m, d;
   if (/^\d{4}[-\/]\d{2}[-\/]\d{2}$/.test(str)) {
     [y, m, d] = str.split(/[-\/]/).map(Number);
     return new Date(y, m - 1, d);
   }
-  return null;
+  // それ以外はDateコンストラクタに渡してみる
+  const d2 = new Date(str);
+  return isNaN(d2) ? null : d2;
 }
 
 function renderCustomerList() {
@@ -51,9 +54,10 @@ function renderCustomerList() {
         today.setHours(0,0,0,0); // 時間を無視
         const diff = (due - today) / (1000 * 60 * 60 * 24);
         if (!isNaN(diff)) {
-          if (diff < 7) dueBg = 'background:#ffcccc;';
-          else if (diff < 14) dueBg = 'background:#ffe5b4;';
-          else if (diff < 21) dueBg = 'background:#e5ffcc;';
+          if (diff < 7) dueBg = 'background:#ffcccc;';         // 1週間以内
+          else if (diff < 14) dueBg = 'background:#ffe5b4;';   // 2週間以内
+          else if (diff < 21) dueBg = 'background:#e5ffcc;';   // 3週間以内
+          else dueBg = '';
         }
       }
       const tr = document.createElement('tr');
@@ -129,9 +133,10 @@ function renderCustomerList() {
         today.setHours(0,0,0,0); // 時間を無視
         const diff = (due - today) / (1000 * 60 * 60 * 24);
         if (!isNaN(diff)) {
-          if (diff < 7) dueBg = 'background:#ffcccc;';
-          else if (diff < 14) dueBg = 'background:#ffe5b4;';
-          else if (diff < 21) dueBg = 'background:#e5ffcc;';
+          if (diff < 7) dueBg = 'background:#ffcccc;';         // 1週間以内
+          else if (diff < 14) dueBg = 'background:#ffe5b4;';   // 2週間以内
+          else if (diff < 21) dueBg = 'background:#e5ffcc;';   // 3週間以内
+          else dueBg = '';
         }
       }
       const card = document.createElement('div');
