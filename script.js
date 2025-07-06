@@ -606,7 +606,6 @@ window.completeDelivery = function(id) {
 
 // 新しいcompleteDeliveryWithFile関数を追加
 window.completeDeliveryWithFile = async function(id, formEl) {
-  // customersCacheを直接使う
   customersCache = getCustomers();
   const customer = customersCache.find(c => c.id === id);
   if (!customer) return;
@@ -616,8 +615,6 @@ window.completeDeliveryWithFile = async function(id, formEl) {
   const mm = ('0' + (today.getMonth() + 1)).slice(-2);
   const dd = ('0' + today.getDate()).slice(-2);
   const dateStr = `${yyyy}/${mm}/${dd}`;
-  // すでに同じ日付の納品履歴があれば追加しない
-  if (customer.deliveries.some(d => d.date === dateStr)) return;
   const filesInput = formEl.querySelector('input[type="file"]');
   const files = Array.from(filesInput.files);
   const fileObjs = await Promise.all(files.map(file => new Promise((resolve) => {
@@ -627,8 +624,20 @@ window.completeDeliveryWithFile = async function(id, formEl) {
     };
     reader.readAsDataURL(file);
   })));
+  // すでに同じ日付の納品履歴があれば、ファイルが空なら上書き、そうでなければ追加しない
+  const existing = customer.deliveries.find(d => d.date === dateStr);
+  if (existing) {
+    if (!existing.files || existing.files.length === 0) {
+      existing.files = fileObjs;
+      customer.dueDate = '';
+      customer.amount = '';
+      saveCustomers(customersCache);
+      formEl.reset();
+      renderCustomerList();
+    }
+    return;
+  }
   customer.deliveries.push({ date: dateStr, memo: '', files: fileObjs });
-  // 納期・金額をクリア
   customer.dueDate = '';
   customer.amount = '';
   saveCustomers(customersCache);

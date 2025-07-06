@@ -16,7 +16,7 @@ header {
   z-index: 10;
 }
 header h1 {
-  font-size: 2.3rem;
+  font-size: 1.8em;
   font-weight: 600;
   margin: 0;
   letter-spacing: 0.02em;
@@ -157,9 +157,6 @@ a:hover {
     font-size: 0.95rem;
     padding: 8px 2px;
   }
-  header h1 {
-    font-size: 1.4rem;
-  }
   header .nav-btn {
     font-size: 0.95rem;
     padding: 6px 12px;
@@ -167,9 +164,6 @@ a:hover {
   #select-all-label,
   #delete-selected-wrapper {
     display: none !important;
-  }
-  h2 {
-    font-size: 1rem;
   }
 }
 .action-dropdown, .action-dropbtn, .action-dropdown-content { display: none !important; }
@@ -375,7 +369,7 @@ td .action-btn:hover {
   gap: 8px;
 }
 h2 {
-  font-size: 1.8rem;
+  font-size: 1.5em;
   font-weight: 600;
   margin: 24px 0 16px 0;
 } 
