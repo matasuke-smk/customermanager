@@ -80,8 +80,15 @@ function renderCustomerList() {
         <td>${isEditing ? `<input type="number" value="${c.amount || ''}" data-id="${c.id}" data-field="amount" min="0">` : (c.amount ? c.amount + '円' : '')}</td>
         <td>${isEditing ? `<textarea data-id="${c.id}" data-field="memo">${c.memo || ''}</textarea>` : (c.memo || '')}</td>
         <td>
-          ${isEditing ? `<button class="action-btn" onclick="saveEdit('${c.id}')">保存</button>` : `<button class="action-btn" onclick="editRow('${c.id}')">編集</button>`}
-          <button class="action-btn" onclick="deleteCustomerUI('${c.id}')">削除</button>
+          <div class="action-dropdown" style="position:relative;display:inline-block;">
+            <button class="action-btn action-dropbtn" onclick="toggleDropdown(event, '${c.id}')">操作 ▼</button>
+            <div class="action-dropdown-content" id="dropdown-${c.id}" style="display:none;position:absolute;z-index:10;min-width:120px;background:#fff;border:1px solid #ccc;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+              <button class="action-btn" style="width:100%;border-radius:0;background:none;color:#333;box-shadow:none;" onclick="completeDelivery('${c.id}')">納品完了</button>
+              <button class="action-btn" style="width:100%;border-radius:0;background:none;color:#333;box-shadow:none;" onclick="openCustomerDetail('${c.id}')">詳細</button>
+              <button class="action-btn" style="width:100%;border-radius:0;background:none;color:#333;box-shadow:none;" onclick="editRow('${c.id}')">編集</button>
+              <button class="action-btn" style="width:100%;border-radius:0;background:none;color:#333;box-shadow:none;" onclick="deleteCustomerUI('${c.id}')">削除</button>
+            </div>
+          </div>
         </td>
       `;
       tbody.appendChild(tr);
@@ -153,30 +160,37 @@ function renderCustomerList() {
       card.className = 'customer-card';
       card.setAttribute('style', dueBg);
       card.innerHTML = `
-        <div class=\"card-row\">
-          <!-- チェックボックスはスマホ表示では非表示 -->
-          <span class=\"card-label\">名前</span>
-          <span class=\"card-value\">${isEditing ? `<input type=\"text\" value=\"${c.name || ''}\" data-id=\"${c.id}\" data-field=\"name\">` : (c.name || '')}</span>
+        <form class="delivery-form-on-card" onsubmit="event.preventDefault(); completeDeliveryWithFile('${c.id}', this);">
+          <input type="file" name="deliveryFile" style="margin-bottom:4px;" multiple>
+          <button class="action-btn complete-btn" type="submit">納品完了</button>
+        </form>
+        <div class="card-main" style="cursor:pointer;" ${isEditing ? '' : `onclick="openCustomerDetail('${c.id}')"`}>
+          <div class="card-row">
+            <span class="card-label">名前</span>
+            <span class="card-value">${isEditing ? `<input type="text" value="${c.name || ''}" data-id="${c.id}" data-field="name">` : (c.name || '')}</span>
+          </div>
+          <div class="card-row">
+            <span class="card-label">メール</span>
+            <span class="card-value">${isEditing ? `<input type="email" value="${c.email || ''}" data-id="${c.id}" data-field="email">` : (c.email ? `<a href=\"mailto:${c.email}\">${c.email}</a>` : '')}</span>
+          </div>
+          <div class="card-row">
+            <span class="card-label">納期</span>
+            <span class="card-value">${isEditing ? `<input type="text" value="${c.dueDate || ''}" data-id="${c.id}" data-field="dueDate" placeholder="yyyy/MM/dd">` : (c.dueDate || '')}</span>
+          </div>
+          <div class="card-row">
+            <span class="card-label">金額</span>
+            <span class="card-value">${isEditing ? `<input type="number" value="${c.amount || ''}" data-id="${c.id}" data-field="amount" min="0">` : (c.amount ? c.amount + '円' : '')}</span>
+          </div>
+          <div class="card-row">
+            <span class="card-label">メモ</span>
+            <span class="card-value">${isEditing ? `<textarea data-id="${c.id}" data-field="memo">${c.memo || ''}</textarea>` : (c.memo || '')}</span>
+          </div>
         </div>
-        <div class=\"card-row\">
-          <span class=\"card-label\">メール</span>
-          <span class=\"card-value\">${isEditing ? `<input type=\"email\" value=\"${c.email || ''}\" data-id=\"${c.id}\" data-field=\"email\">` : (c.email ? `<a href=\"mailto:${c.email}\">${c.email}</a>` : '')}</span>
-        </div>
-        <div class=\"card-row\">
-          <span class=\"card-label\">納期</span>
-          <span class=\"card-value\">${isEditing ? `<input type=\"text\" value=\"${c.dueDate || ''}\" data-id=\"${c.id}\" data-field=\"dueDate\" placeholder=\"yyyy/MM/dd\">` : (c.dueDate || '')}</span>
-        </div>
-        <div class=\"card-row\">
-          <span class=\"card-label\">金額</span>
-          <span class=\"card-value\">${isEditing ? `<input type=\"number\" value=\"${c.amount || ''}\" data-id=\"${c.id}\" data-field=\"amount\" min=\"0\">` : (c.amount ? c.amount + '円' : '')}</span>
-        </div>
-        <div class=\"card-row\">
-          <span class=\"card-label\">メモ</span>
-          <span class=\"card-value\">${isEditing ? `<textarea data-id=\"${c.id}\" data-field=\"memo\">${c.memo || ''}</textarea>` : (c.memo || '')}</span>
-        </div>
-        <div class=\"card-actions\">
-          ${isEditing ? `<button class=\"action-btn\" onclick=\"saveEdit('${c.id}')\">保存</button>` : `<button class=\"action-btn\" onclick=\"editRow('${c.id}')\">編集</button>`}
-          <button class=\"action-btn\" onclick=\"deleteCustomerUI('${c.id}')\">削除</button>
+        <div class="card-actions-row card-actions">
+          ${isEditing
+            ? `<button class="action-btn edit-btn" onclick="saveEdit('${c.id}')">保存</button>`
+            : `<button class="action-btn edit-btn" onclick="editRow('${c.id}')">編集</button>`}
+          <button class="action-btn delete-btn" onclick="deleteCustomerUI('${c.id}')">削除</button>
         </div>
       `;
       list.appendChild(card);
@@ -245,6 +259,7 @@ window.editRow = function(id) {
 
 window.saveEdit = function(id) {
   // 編集中のinput/textareaの値でcustomersCacheを更新
+  // テーブル型
   const tr = document.querySelectorAll('#customer-table tbody tr');
   let row;
   for (let i = 0; i < tr.length; i++) {
@@ -264,6 +279,20 @@ window.saveEdit = function(id) {
         c.memo = row.querySelector('textarea[data-field="memo"]').value;
       }
     });
+  } else {
+    // カード型
+    const card = document.querySelector(`.customer-card input[data-id="${id}"]`)?.closest('.customer-card');
+    if (card) {
+      customersCache.forEach((c, i) => {
+        if (c.id === id) {
+          c.name = card.querySelector('input[data-field="name"]').value;
+          c.email = card.querySelector('input[data-field="email"]').value;
+          c.dueDate = card.querySelector('input[data-field="dueDate"]').value;
+          c.amount = card.querySelector('input[data-field="amount"]').value;
+          c.memo = card.querySelector('textarea[data-field="memo"]').value;
+        }
+      });
+    }
   }
   customersCache.forEach((c, i) => {
     if (c.id === id) {
@@ -470,4 +499,139 @@ function ensureCustomerIds() {
     }
   });
   if (changed) saveCustomers(customersCache);
-} 
+}
+
+// 顧客詳細モーダル制御・納品履歴管理
+const detailModal = document.getElementById('customer-detail-modal');
+const closeDetailModalBtn = document.getElementById('close-detail-modal');
+const detailCustomerInfo = document.getElementById('detail-customer-info');
+const deliveryList = document.getElementById('delivery-list');
+const deliveryForm = document.getElementById('delivery-form');
+let currentDetailCustomerId = null;
+
+function openCustomerDetail(id) {
+  const customers = getCustomers();
+  const customer = customers.find(c => c.id === id);
+  if (!customer) return;
+  currentDetailCustomerId = id;
+  // 顧客情報表示
+  detailCustomerInfo.innerHTML = `
+    <div><b>名前:</b> ${customer.name || ''}</div>
+    <div><b>メール:</b> ${customer.email || ''}</div>
+    <div><b>納期:</b> ${customer.dueDate || ''}</div>
+    <div><b>金額:</b> ${customer.amount || ''}</div>
+    <div><b>メモ:</b> ${customer.memo || ''}</div>
+  `;
+  // 納品履歴表示
+  renderDeliveryList(customer);
+  detailModal.style.display = 'flex';
+}
+
+function closeCustomerDetail() {
+  detailModal.style.display = 'none';
+  currentDetailCustomerId = null;
+}
+
+if (closeDetailModalBtn) {
+  closeDetailModalBtn.onclick = closeCustomerDetail;
+}
+
+function renderDeliveryList(customer) {
+  if (!customer.deliveries) customer.deliveries = [];
+  if (!customer.deliveries.length) {
+    deliveryList.innerHTML = '<div>納品履歴はありません</div>';
+    return;
+  }
+  deliveryList.innerHTML = customer.deliveries.map((d, i) => `
+    <div style="border-bottom:1px solid #eee;padding:8px 0;">
+      <div><b>納品日:</b> ${d.date || ''}</div>
+      <div><b>メモ:</b> ${d.memo || ''}</div>
+      <div><b>ファイル:</b> ${d.files && d.files.length ? d.files.map(f => {
+        if (f.url && f.url.startsWith('data:image/')) {
+          return `<a href="${f.url}" download="${f.name}">${f.name}</a><br><img src="${f.url}" alt="${f.name}" style="max-width:120px;max-height:80px;display:block;margin:4px 0;">`;
+        } else if (f.url && f.url.startsWith('data:application/pdf')) {
+          return `<a href="${f.url}" download="${f.name}">${f.name}</a><br><embed src="${f.url}" type="application/pdf" width="120" height="80">`;
+        } else {
+          return `<a href="${f.url}" download="${f.name}">${f.name}</a>`;
+        }
+      }).join('<br>') : 'なし'}</div>
+    </div>
+  `).join('');
+}
+
+if (deliveryForm) {
+  deliveryForm.onsubmit = async function(e) {
+    e.preventDefault();
+    customersCache = getCustomers();
+    const customer = customersCache.find(c => c.id === currentDetailCustomerId);
+    if (!customer) return;
+    if (!customer.deliveries) customer.deliveries = [];
+    const date = document.getElementById('delivery-date').value;
+    const memo = document.getElementById('delivery-memo').value;
+    const filesInput = document.getElementById('delivery-files');
+    const files = Array.from(filesInput.files);
+    // ファイルをbase64で保存（簡易）
+    const fileObjs = await Promise.all(files.map(file => new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        resolve({ name: file.name, url: evt.target.result });
+      };
+      reader.readAsDataURL(file);
+    })));
+    customer.deliveries.push({ date, memo, files: fileObjs });
+    saveCustomers(customersCache);
+    renderDeliveryList(customer);
+    deliveryForm.reset();
+  };
+}
+
+// 顧客リストに「納品完了」ボタン追加
+window.completeDelivery = function(id) {
+  const customers = getCustomers();
+  const customer = customers.find(c => c.id === id);
+  if (!customer) return;
+  if (!customer.deliveries) customer.deliveries = [];
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = ('0' + (today.getMonth() + 1)).slice(-2);
+  const dd = ('0' + today.getDate()).slice(-2);
+  const dateStr = `${yyyy}/${mm}/${dd}`;
+  // すでに同じ日付の納品履歴があれば追加しない
+  if (customer.deliveries.some(d => d.date === dateStr)) return;
+  customer.deliveries.push({ date: dateStr, memo: '', files: [] });
+  saveCustomers(customers);
+  if (currentDetailCustomerId === id) renderDeliveryList(customer);
+  renderCustomerList();
+};
+
+// 新しいcompleteDeliveryWithFile関数を追加
+window.completeDeliveryWithFile = async function(id, formEl) {
+  // customersCacheを直接使う
+  customersCache = getCustomers();
+  const customer = customersCache.find(c => c.id === id);
+  if (!customer) return;
+  if (!customer.deliveries) customer.deliveries = [];
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = ('0' + (today.getMonth() + 1)).slice(-2);
+  const dd = ('0' + today.getDate()).slice(-2);
+  const dateStr = `${yyyy}/${mm}/${dd}`;
+  // すでに同じ日付の納品履歴があれば追加しない
+  if (customer.deliveries.some(d => d.date === dateStr)) return;
+  const filesInput = formEl.querySelector('input[type="file"]');
+  const files = Array.from(filesInput.files);
+  const fileObjs = await Promise.all(files.map(file => new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      resolve({ name: file.name, url: evt.target.result });
+    };
+    reader.readAsDataURL(file);
+  })));
+  customer.deliveries.push({ date: dateStr, memo: '', files: fileObjs });
+  // 納期・金額をクリア
+  customer.dueDate = '';
+  customer.amount = '';
+  saveCustomers(customersCache);
+  formEl.reset();
+  renderCustomerList();
+}; 

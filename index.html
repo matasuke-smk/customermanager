@@ -11,10 +11,10 @@
     <h1>顧客管理システム</h1>
   </header>
 
-  <button class="nav-btn" style="display:block;margin:24px auto 0 auto;" onclick="document.getElementById('list-section').scrollIntoView({behavior: 'smooth'});">顧客管理リストへ</button>
+  <button class="nav-btn" style="display:block;margin:24px auto 0 auto;" onclick="scrollToCustomerList()">顧客リストへ</button>
 
   <section id="form-section">
-    <h2>顧客情報 登録/編集</h2>
+    <h2 style="text-align:center;">顧客登録</h2>
     <form id="customer-form">
       <input type="hidden" id="customer-id">
       <label>名前: <input type="text" id="name" required style="ime-mode:active;"></label>
@@ -22,13 +22,15 @@
       <label>納期: <input type="text" id="dueDate" placeholder="yyyy/MM/dd" inputmode="numeric" style="ime-mode:disabled;" autocomplete="off"></label>
       <label>金額: <input type="number" id="amount" min="0" inputmode="numeric" style="ime-mode:disabled;"></label>
       <label>メモ: <textarea id="memo" style="ime-mode:active;"></textarea></label>
-      <button type="submit">保存</button>
-      <button type="button" id="reset-btn">リセット</button>
+      <div class="button-row">
+        <button type="submit">保存</button>
+        <button type="button" id="reset-btn">リセット</button>
+      </div>
     </form>
   </section>
 
   <section id="list-section">
-    <h2>顧客リスト</h2>
+    <h2 style="text-align:center;">顧客リスト</h2>
     <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
       <button class="action-btn" onclick="exportCSV()" id="export-csv-btn">CSVエクスポート</button>
       <button class="action-btn" id="import-csv-btn" type="button">CSVインポート</button>
@@ -60,6 +62,29 @@
     </div>
   </section>
 
+  <div id="customer-detail-modal" class="modal" style="display:none;position:fixed;z-index:1000;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.4);align-items:center;justify-content:center;">
+    <div class="modal-content" style="background:#fff;padding:24px 16px 24px 16px;border-radius:12px;max-width:480px;width:95vw;max-height:90vh;overflow-y:auto;position:relative;">
+      <button id="close-detail-modal" style="display:block;width:100%;margin:0 auto 12px auto;padding:10px 0;font-size:1.1em;background:#eee;border:none;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.08);z-index:2;">閉じる</button>
+      <h2 id="detail-modal-title" style="margin-top:0;margin-bottom:16px;text-align:center;">顧客詳細</h2>
+      <div id="detail-customer-info"></div>
+      <h3>納品履歴</h3>
+      <div id="delivery-list"></div>
+      <form id="delivery-form">
+        <label>納品日: <input type="text" id="delivery-date" placeholder="yyyy/MM/dd" required></label>
+        <label>ファイル: <input type="file" id="delivery-files" multiple required></label>
+        <label>メモ: <input type="text" id="delivery-memo"></label>
+        <button type="submit">納品履歴を追加</button>
+      </form>
+    </div>
+  </div>
+
   <script src="script.js"></script>
+  <script>
+  function scrollToCustomerList() {
+    const section = document.getElementById('list-section');
+    const y = section.getBoundingClientRect().top + window.pageYOffset - 40; // 40px上に余白
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  }
+  </script>
 </body>
 </html> 
