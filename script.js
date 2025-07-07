@@ -243,8 +243,9 @@ window.saveEdit = function(id) {
   }
 };
 
-window.deleteCustomerUI = function(id) {
-  if (!confirm('本当に削除しますか？')) return;
+window.deleteCustomerUI = async function(id) {
+  const ok = await showCustomConfirm('この顧客を削除しますか？');
+  if (!ok) return;
   customersCache = getCustomers();
   const idx = customersCache.findIndex(c => c.id === id);
   if (idx !== -1) {
@@ -254,7 +255,7 @@ window.deleteCustomerUI = function(id) {
   }
 };
 
-window.deleteSelected = function() {
+window.deleteSelected = async function() {
   const tableChecks = document.querySelectorAll('#customer-table tbody .row-check');
   const cardChecks = document.querySelectorAll('#customer-list .row-check');
   const checks = Array.from(tableChecks).concat(Array.from(cardChecks));
@@ -267,7 +268,8 @@ window.deleteSelected = function() {
     alert('削除する顧客を選択してください');
     return;
   }
-  if (!confirm('選択した顧客を本当に削除しますか？')) return;
+  const ok = await showCustomConfirm('選択した顧客を本当に削除しますか？');
+  if (!ok) return;
   customersCache = getCustomers();
   toDelete.forEach(id => {
     const idx = customersCache.findIndex(c => c.id === id);
@@ -627,7 +629,6 @@ window.completeDeliveryWithFile = async function(id, formEl) {
   }
   let filesInput = formEl.querySelector('input[type="file"]');
   if (!filesInput) {
-    // 念のためformElの親やcard内も探索
     filesInput = formEl.closest('.customer-card')?.querySelector('input[type="file"]');
     if (!filesInput) {
       console.warn('completeDeliveryWithFile: input[type=file]が見つかりません');
@@ -639,19 +640,28 @@ window.completeDeliveryWithFile = async function(id, formEl) {
     console.warn('completeDeliveryWithFile: ファイルが添付されていません');
     return;
   }
-  const fileObjs = await Promise.all(files.map(file => new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-      resolve({ name: file.name, url: evt.target.result });
-    };
-    reader.readAsDataURL(file);
-  })));
-  customer.deliveries.push({ date: dateStr, memo: '', files: fileObjs, amount: customer.amount });
-  customer.dueDate = '';
-  customer.amount = '';
-  saveCustomers(customersCache);
-  customersCache = getCustomers();
-  renderCustomerList();
+  try {
+    const fileObjs = await Promise.all(files.map(file => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        resolve({ name: file.name, url: evt.target.result });
+      };
+      reader.onerror = function(evt) {
+        console.error('FileReader error:', evt, file);
+        reject(evt);
+      };
+      reader.readAsDataURL(file);
+    })));
+    customer.deliveries.push({ date: dateStr, memo: '', files: fileObjs, amount: customer.amount });
+    customer.dueDate = '';
+    customer.amount = '';
+    saveCustomers(customersCache);
+    customersCache = getCustomers();
+    renderCustomerList();
+  } catch (e) {
+    console.error('completeDeliveryWithFile: ファイル添付時にエラー', e);
+    alert('ファイルの読み込みに失敗しました。画像サイズや形式をご確認ください。');
+  }
 };
 
 // モーダル外クリックで閉じる処理
