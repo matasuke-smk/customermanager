@@ -262,9 +262,9 @@ td .action-btn:hover {
   }
   .customer-card {
     min-width: 0;
-    max-width: 420px;
-    width: 100%;
-    margin: 0 0 12px 0;
+    max-width: calc(100vw - 10px);
+    width: calc(100vw - 10px);
+    margin: 0 auto 12px auto;
     border-radius: 10px;
     padding: 10px 2vw 8px 2vw;
     box-sizing: border-box;
@@ -525,9 +525,9 @@ h2 {
   }
   .customer-card {
     min-width: 0;
-    max-width: 420px;
-    width: 100%;
-    margin: 0 0 12px 0;
+    max-width: calc(100vw - 10px);
+    width: calc(100vw - 10px);
+    margin: 0 auto 12px auto;
     border-radius: 10px;
     padding: 10px 2vw 8px 2vw;
     box-sizing: border-box;
