@@ -134,11 +134,15 @@ function renderCustomerList() {
     const fileInput = card.querySelector('input[type="file"]');
     const fileNameSpan = card.querySelector('.selected-file-name');
     if (fileInput) {
+      // 初期状態: ファイル未選択ならボタン無効化
+      if (completeBtn) completeBtn.disabled = !fileInput.files.length;
       fileInput.addEventListener('change', function(e) {
         if (fileInput.files.length > 0) {
           fileNameSpan.textContent = Array.from(fileInput.files).map(f => f.name).join(', ');
+          if (completeBtn) completeBtn.disabled = false;
         } else {
           fileNameSpan.textContent = '';
+          if (completeBtn) completeBtn.disabled = true;
         }
       });
     }
@@ -553,11 +557,35 @@ window.saveDeliveryEdit = function(index) {
   renderDeliveryList(customer);
 };
 
-window.deleteDelivery = function(index) {
+// カスタムconfirmモーダルのユーティリティ
+function showCustomConfirm(message) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('custom-confirm-modal');
+    const msg = document.getElementById('custom-confirm-message');
+    const yesBtn = document.getElementById('custom-confirm-yes');
+    const noBtn = document.getElementById('custom-confirm-no');
+    msg.textContent = message;
+    modal.style.display = 'flex';
+    function cleanup(result) {
+      modal.style.display = 'none';
+      yesBtn.removeEventListener('click', onYes);
+      noBtn.removeEventListener('click', onNo);
+      resolve(result);
+    }
+    function onYes() { cleanup(true); }
+    function onNo() { cleanup(false); }
+    yesBtn.addEventListener('click', onYes);
+    noBtn.addEventListener('click', onNo);
+  });
+}
+
+// 納品履歴削除
+window.deleteDelivery = async function(index) {
   const customers = getCustomers();
   const customer = customers.find(c => c.id === currentDetailCustomerId);
   if (!customer) return;
-  if (!confirm('この納品履歴を削除しますか？')) return;
+  const ok = await showCustomConfirm('この納品履歴を削除しますか？');
+  if (!ok) return;
   customer.deliveries.splice(index, 1);
   saveCustomers(customers);
   renderDeliveryList(customer);
