@@ -172,22 +172,28 @@ a:hover {
   #delete-selected-wrapper {
     display: none !important;
   }
-  #customer-form, #customer-form input, #customer-form textarea, #customer-form select {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    box-sizing: border-box !important;
+  #customer-form, #customer-form label, #form-section {
+    overflow-x: hidden !important;
+    padding: 0 !important;
   }
   #customer-form input[type="date"] {
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
+    display: block !important;
     -webkit-appearance: none;
     appearance: none;
     font-size: 1em;
     padding-right: 6px !important;
     overflow: hidden;
+    margin: 0 auto 12px auto;
+  }
+  #customer-form input, #customer-form textarea, #customer-form select {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
   }
 }
 .action-dropdown, .action-dropbtn, .action-dropdown-content { display: none !important; }

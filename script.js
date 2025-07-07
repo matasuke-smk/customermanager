@@ -623,6 +623,7 @@ window.completeDeliveryWithFile = async function(id, formEl) {
   const dateStr = `${yyyy}/${mm}/${dd}`;
   const filesInput = formEl.querySelector('input[type="file"]');
   const files = Array.from(filesInput.files);
+  if (!files.length) return; // ファイルがなければ何もしない
   const fileObjs = await Promise.all(files.map(file => new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = function(evt) {
