@@ -621,9 +621,24 @@ window.completeDeliveryWithFile = async function(id, formEl) {
   const mm = ('0' + (today.getMonth() + 1)).slice(-2);
   const dd = ('0' + today.getDate()).slice(-2);
   const dateStr = `${yyyy}/${mm}/${dd}`;
-  const filesInput = formEl.querySelector('input[type="file"]');
+  if (!formEl) {
+    console.warn('completeDeliveryWithFile: formElがnullです');
+    return;
+  }
+  let filesInput = formEl.querySelector('input[type="file"]');
+  if (!filesInput) {
+    // 念のためformElの親やcard内も探索
+    filesInput = formEl.closest('.customer-card')?.querySelector('input[type="file"]');
+    if (!filesInput) {
+      console.warn('completeDeliveryWithFile: input[type=file]が見つかりません');
+      return;
+    }
+  }
   const files = Array.from(filesInput.files);
-  if (!files.length) return; // ファイルがなければ何もしない
+  if (!files.length) {
+    console.warn('completeDeliveryWithFile: ファイルが添付されていません');
+    return;
+  }
   const fileObjs = await Promise.all(files.map(file => new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = function(evt) {

@@ -185,7 +185,8 @@ a:hover {
     -webkit-appearance: none;
     appearance: none;
     font-size: 1em;
-    padding-right: 6px !important;
+    padding: 10px !important;
+    height: 42px !important;
     overflow: hidden;
     margin: 0 auto 12px auto;
   }
@@ -193,6 +194,12 @@ a:hover {
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  #customer-form {
+    width: calc(100vw - 10px) !important;
+    max-width: calc(100vw - 10px) !important;
+    margin: 0 auto !important;
     box-sizing: border-box !important;
   }
 }
