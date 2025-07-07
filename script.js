@@ -74,7 +74,7 @@ function renderCustomerList() {
       </div>
       <div class="card-main">
         <div class="card-row"><span class="card-label">メール</span><span class="card-value">${isEditing ? `<input type="email" value="${current.email || ''}" data-id="${current.id}" data-field="email">` : (current.email ? `<a href="mailto:${current.email}">${current.email}</a>` : '')}</span></div>
-        <div class="card-row"><span class="card-label">納期</span><span class="card-value">${isEditing ? `<input type="date" value="${current.dueDate || ''}" data-id="${current.id}" data-field="dueDate">` : (current.dueDate || '')}</span></div>
+        <div class="card-row"><span class="card-label">納期</span><span class="card-value">${isEditing ? `<input type="date" value="${current.dueDate ? current.dueDate.replace(/\//g, '-') : ''}" data-id="${current.id}" data-field="dueDate">` : (current.dueDate || '')}</span></div>
         <div class="card-row"><span class="card-label">金額</span><span class="card-value">${isEditing ? `<input type="number" value="${current.amount || ''}" data-id="${current.id}" data-field="amount" min="0">` : (current.amount ? current.amount + '円' : '')}</span></div>
         <div class="card-row"><span class="card-label">メモ</span><span class="card-value">${isEditing ? `<textarea data-id="${current.id}" data-field="memo">${current.memo || ''}</textarea>` : (current.memo || '')}</span></div>
         <div class="delivery-form-on-card">
@@ -178,22 +178,7 @@ function renderCustomerList() {
     el.addEventListener('change', function() {
       const id = this.dataset.id;
       const field = this.dataset.field;
-      let val = this.value;
-      if (field === 'dueDate' && /^\d{8}$/.test(val)) {
-        val = val.replace(/(\d{4})(\d{2})(\d{2})/, '$1/$2/$3');
-        this.value = val;
-      }
-      if (field === 'dueDate') {
-        if (/^\d{4}$/.test(val)) {
-          this.value = val + '/';
-        } else if (/^\d{4}\/\d{2}$/.test(val)) {
-          this.value = val + '/';
-        }
-      }
-      if (field === 'dueDate' && val && !/^\d{4}\//.test(val)) {
-        this.value = '';
-        val = '';
-      }
+      // 変換・クリアロジック削除
       customersCache.forEach((c, i) => {
         if (c.id === id) {
           c[field] = this.value;
@@ -232,7 +217,12 @@ window.saveEdit = function(id) {
       if (c.id === id) {
         c.name = card.querySelector('input[data-field="name"]')?.value || c.name;
         c.email = card.querySelector('input[data-field="email"]')?.value || c.email;
-        c.dueDate = card.querySelector('input[data-field="dueDate"]')?.value || c.dueDate;
+        // 納期はYYYY-MM-DD→YYYY/MM/DDに変換して保存
+        let dueDateVal = card.querySelector('input[data-field="dueDate"]')?.value || c.dueDate;
+        if (dueDateVal && /^\d{4}-\d{2}-\d{2}$/.test(dueDateVal)) {
+          dueDateVal = dueDateVal.replace(/-/g, '/');
+        }
+        c.dueDate = dueDateVal;
         c.amount = card.querySelector('input[data-field="amount"]')?.value || c.amount;
         c.memo = card.querySelector('textarea[data-field="memo"]')?.value || c.memo;
         c._editing = false;
@@ -467,6 +457,8 @@ function openCustomerDetail(id) {
     <div><b>納期:</b> ${customer.dueDate || ''}</div>
     <div><b>金額:</b> ${customer.amount || ''}</div>
     <div><b>メモ:</b> ${customer.memo || ''}</div>
+    <hr style="margin:16px 0 12px 0; border: none; border-top: 2px solid #ccc;">
+    <h3 style='text-align:center;margin:0 0 12px 0;'>納品履歴</h3>
   `;
   // 納品履歴表示
   renderDeliveryList(customer);
@@ -496,8 +488,10 @@ function renderDeliveryList(customer) {
           <div><b>金額:</b> <input type='text' value='${d.amount || ''}' data-index='${i}' class='delivery-edit-amount'></div>
           <div><b>メモ:</b> <input type='text' value='${d.memo || ''}' data-index='${i}' class='delivery-edit-memo'></div>
           <div><b>ファイル:</b> <span>（ファイル編集は不可）</span></div>
-          <button class='action-btn' onclick='saveDeliveryEdit(${i})'>保存</button>
-          <button class='action-btn' onclick='cancelDeliveryEdit(${i})'>キャンセル</button>
+          <div class="delivery-actions-row" style="display:flex;gap:8px;margin-top:8px;">
+            <button class='action-btn' onclick='saveDeliveryEdit(${i})'>保存</button>
+            <button class='action-btn' onclick='cancelDeliveryEdit(${i})'>キャンセル</button>
+          </div>
         </div>
       `;
     } else {
@@ -506,7 +500,7 @@ function renderDeliveryList(customer) {
           <div><b>納品日:</b> ${d.date || ''}</div>
           <div><b>金額:</b> ${d.amount ? d.amount + '円' : ''}</div>
           <div><b>メモ:</b> ${d.memo || ''}</div>
-          <div><b>ファイル:</b> ${d.files && d.files.length ? d.files.map(f => {
+          <div style="display:flex;align-items:flex-start;"><span style="min-width:48px;display:inline-block;"><b>ファイル:</b></span><span>${d.files && d.files.length ? d.files.map(f => {
             if (f.url && f.url.startsWith('data:image/')) {
               return `<a href="${f.url}" download="${f.name}">${f.name}</a><br><img src="${f.url}" alt="${f.name}" style="max-width:120px;max-height:80px;display:block;margin:4px 0;">`;
             } else if (f.url && f.url.startsWith('data:application/pdf')) {
@@ -514,9 +508,11 @@ function renderDeliveryList(customer) {
             } else {
               return `<a href="${f.url}" download="${f.name}">${f.name}</a>`;
             }
-          }).join('<br>') : 'なし'}</div>
-          <button class='action-btn' onclick='editDelivery(${i})'>編集</button>
-          <button class='action-btn' onclick='deleteDelivery(${i})'>削除</button>
+          }).join('<br>') : 'なし'}</span></div>
+          <div class="delivery-actions-row" style="display:flex;gap:8px;margin-top:8px;">
+            <button class='action-btn' onclick='editDelivery(${i})'>編集</button>
+            <button class='action-btn' onclick='deleteDelivery(${i})'>削除</button>
+          </div>
         </div>
       `;
     }
