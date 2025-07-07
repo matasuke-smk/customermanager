@@ -486,6 +486,7 @@ function renderDeliveryList(customer) {
     deliveryList.innerHTML = '<div>納品履歴はありません</div>';
     return;
   }
+  // h3（納品履歴）は絶対に出力しない
   deliveryList.innerHTML = customer.deliveries.map((d, i) => {
     if (d._editing) {
       return `
