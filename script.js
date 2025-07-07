@@ -74,7 +74,7 @@ function renderCustomerList() {
       </div>
       <div class="card-main">
         <div class="card-row"><span class="card-label">メール</span><span class="card-value">${isEditing ? `<input type="email" value="${current.email || ''}" data-id="${current.id}" data-field="email">` : (current.email ? `<a href="mailto:${current.email}">${current.email}</a>` : '')}</span></div>
-        <div class="card-row"><span class="card-label">納期</span><span class="card-value">${isEditing ? `<input type="text" value="${current.dueDate || ''}" data-id="${current.id}" data-field="dueDate" placeholder="yyyy/MM/dd">` : (current.dueDate || '')}</span></div>
+        <div class="card-row"><span class="card-label">納期</span><span class="card-value">${isEditing ? `<input type="date" value="${current.dueDate || ''}" data-id="${current.id}" data-field="dueDate">` : (current.dueDate || '')}</span></div>
         <div class="card-row"><span class="card-label">金額</span><span class="card-value">${isEditing ? `<input type="number" value="${current.amount || ''}" data-id="${current.id}" data-field="amount" min="0">` : (current.amount ? current.amount + '円' : '')}</span></div>
         <div class="card-row"><span class="card-label">メモ</span><span class="card-value">${isEditing ? `<textarea data-id="${current.id}" data-field="memo">${current.memo || ''}</textarea>` : (current.memo || '')}</span></div>
         <div class="delivery-form-on-card">
@@ -492,7 +492,7 @@ function renderDeliveryList(customer) {
     if (d._editing) {
       return `
         <div style="border-bottom:1px solid #eee;padding:8px 0;">
-          <div><b>納品日:</b> <input type='text' value='${d.date || ''}' data-index='${i}' class='delivery-edit-date'></div>
+          <div><b>納品日:</b> <input type='date' value='${d.date || ''}' data-index='${i}' class='delivery-edit-date'></div>
           <div><b>金額:</b> <input type='text' value='${d.amount || ''}' data-index='${i}' class='delivery-edit-amount'></div>
           <div><b>メモ:</b> <input type='text' value='${d.memo || ''}' data-index='${i}' class='delivery-edit-memo'></div>
           <div><b>ファイル:</b> <span>（ファイル編集は不可）</span></div>
@@ -618,7 +618,29 @@ window.completeDeliveryWithFile = async function(id, formEl) {
 if (detailModal) {
   detailModal.addEventListener('click', function(e) {
     if (e.target === detailModal) {
+      // 納品履歴編集中ならキャンセル
+      const editingInput = detailModal.querySelector('.delivery-edit-date');
+      if (editingInput) {
+        // 編集中のindexを取得
+        const index = editingInput.getAttribute('data-index');
+        if (typeof window.cancelDeliveryEdit === 'function') {
+          window.cancelDeliveryEdit(index);
+        }
+      }
       closeCustomerDetail();
     }
   });
-} 
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.body.addEventListener('focusin', function(e) {
+    if (e.target.type === 'date' && typeof e.target.showPicker === 'function') {
+      e.target.showPicker();
+    }
+  });
+  document.body.addEventListener('click', function(e) {
+    if (e.target.type === 'date' && typeof e.target.showPicker === 'function') {
+      e.target.showPicker();
+    }
+  });
+}); 
