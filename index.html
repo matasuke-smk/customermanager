@@ -69,6 +69,14 @@
     </div>
   </div>
 
+  <!-- 画像プレビューモーダル -->
+  <div id="image-preview-modal" style="display:none;position:fixed;z-index:99999;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;">
+    <div style="position:relative;max-width:96vw;max-height:90vh;">
+      <img id="image-preview-img" src="" alt="プレビュー" width="100" height="100" style="max-width:96vw;max-height:90vh;display:block;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,0.25);border-radius:10px;">
+      <button id="close-image-preview" style="position:absolute;top:-36px;right:0;background:#fff;color:#333;border:none;border-radius:8px;padding:8px 18px;font-size:1.1em;box-shadow:0 2px 8px rgba(0,0,0,0.13);cursor:pointer;">閉じる</button>
+    </div>
+  </div>
+
   <script src="script.js"></script>
   <script>
   function scrollToCustomerList() {

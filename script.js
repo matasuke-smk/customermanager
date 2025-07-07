@@ -693,4 +693,24 @@ document.addEventListener('DOMContentLoaded', function() {
       e.target.showPicker();
     }
   });
-}); 
+});
+
+// 画像プレビューモーダル制御
+(function() {
+  const modal = document.getElementById('image-preview-modal');
+  const img = document.getElementById('image-preview-img');
+  const closeBtn = document.getElementById('close-image-preview');
+  // 納品履歴の画像クリックでプレビュー
+  document.body.addEventListener('click', function(e) {
+    if (e.target.tagName === 'IMG' && e.target.closest('.delivery-list, #delivery-list')) {
+      img.src = e.target.src;
+      modal.style.display = 'flex';
+    }
+  });
+  // 閉じるボタン
+  if (closeBtn) closeBtn.onclick = function() { modal.style.display = 'none'; img.src = ''; };
+  // モーダル外クリックで閉じる
+  if (modal) modal.addEventListener('click', function(e) {
+    if (e.target === modal) { modal.style.display = 'none'; img.src = ''; }
+  });
+})(); 
