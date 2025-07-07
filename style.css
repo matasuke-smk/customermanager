@@ -197,10 +197,23 @@ a:hover {
     box-sizing: border-box !important;
   }
   #customer-form {
-    width: calc(100vw - 10px) !important;
-    max-width: calc(100vw - 10px) !important;
+    width: 100% !important;
+    max-width: 100% !important;
     margin: 0 auto !important;
     box-sizing: border-box !important;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+    padding-bottom: 24px !important;
+  }
+  #customer-form .button-row {
+    margin-top: 16px !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  #customer-form button,
+  #customer-form #reset-btn {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
   }
 }
 .action-dropdown, .action-dropbtn, .action-dropdown-content { display: none !important; }
