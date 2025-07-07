@@ -172,6 +172,18 @@ a:hover {
   #delete-selected-wrapper {
     display: none !important;
   }
+  #customer-form, #customer-form input, #customer-form textarea, #customer-form select {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  #customer-form input[type="date"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
 }
 .action-dropdown, .action-dropbtn, .action-dropdown-content { display: none !important; }
 
