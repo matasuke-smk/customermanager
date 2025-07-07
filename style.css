@@ -83,6 +83,7 @@ input, textarea, button {
 }
 input[type="date"] {
   font-family: inherit;
+  background: #fff !important;
 }
 button[type="submit"], #reset-btn {
   width: auto;
@@ -177,6 +178,7 @@ a:hover {
     padding: 0 !important;
   }
   #customer-form input[type="date"] {
+    background: #fff !important;
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
